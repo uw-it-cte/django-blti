@@ -1,4 +1,5 @@
-from Crypto.Cipher import AES
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
 from base64 import b64decode, b64encode
 
 
@@ -16,22 +17,26 @@ class aes128cbc(object):
         if key is None:
             raise ValueError('Missing AES key')
         else:
-            self._key = key
+            self._key = self.str_to_bytes(key)
 
         if iv is None:
             raise ValueError('Missing AES initialization vector')
         else:
-            self._iv = iv
+            self._iv = self.str_to_bytes(iv)
 
     def encrypt(self, msg):
         msg = self._pad(self.str_to_bytes(msg))
-        crypt = AES.new(self._key, AES.MODE_CBC, self._iv)
-        return b64encode(crypt.encrypt(msg)).decode('utf-8')
+        crypt = Cipher(algorithms.AES(self._key), modes.CBC(self._iv),
+                       backend=default_backend()).encryptor()
+        return b64encode(crypt.update(msg) +
+                         crypt.finalize()).decode('utf-8')
 
     def decrypt(self, msg):
         msg = b64decode(msg)
-        crypt = AES.new(self._key, AES.MODE_CBC, self._iv)
-        return self._unpad(crypt.decrypt(msg)).decode('utf-8')
+        crypt = Cipher(algorithms.AES(self._key), modes.CBC(self._iv),
+                       backend=default_backend()).decryptor()
+        return self._unpad(crypt.update(msg) +
+                           crypt.finalize()).decode('utf-8')
 
     def _pad(self, s):
         return s + (self._bs - len(s) % self._bs) * self.str_to_bytes(chr(

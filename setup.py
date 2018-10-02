@@ -22,7 +22,7 @@ setup(
     install_requires=[
         'Django>2.1,<3.0',
         'oauth2',
-        'PyCrypto',
+        'cryptography',
     ],
     license='Apache License, Version 2.0',
     description='A Django Application on which to build IMS BLTI Tool Providers',
